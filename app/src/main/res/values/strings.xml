@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Smart2GPS</string>
+    <string name="snack_bar_server_port">Server has not bean started on port.</string>
+    <string name="snack_bar_server_connect">Fail to connect server </string>
+    <string name="snack_bar_no_gps">No Gps Location</string>
+    <string name="dialog_title">연결 종료</string>
+    <string name="dialog_contents">연결을 종료하시겠습니까?</string>
+    <string name="dialog_yes">네</string>
+    <string name="dialog_no">아니오</string>
+    <string name="toast_ip">IP 주소를 입력하여 주세요.</string>
+    <string name="title_activity_maps">Map</string>
+</resources>
