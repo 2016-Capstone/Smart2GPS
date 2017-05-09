@@ -15,6 +15,13 @@
         tools:context="com.example.pyojihye.smart2gps.MapsActivity"/>
 
     <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:id="@+id/buttonDrone"
+        android:text="Current"/>
+
+    <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"

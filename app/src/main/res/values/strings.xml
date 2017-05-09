@@ -9,4 +9,5 @@
     <string name="dialog_no">아니오</string>
     <string name="toast_ip">IP 주소를 입력하여 주세요.</string>
     <string name="title_activity_maps">Map</string>
+    <string name="unknown_drone">The current position of the drones is unknown.</string>
 </resources>

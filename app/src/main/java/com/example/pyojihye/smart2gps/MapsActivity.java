@@ -2,6 +2,7 @@ package com.example.pyojihye.smart2gps;
 
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -19,6 +20,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -32,8 +34,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.StringTokenizer;
 
 import static com.example.pyojihye.smart2gps.Const.IP;
 import static com.example.pyojihye.smart2gps.Const.MY_PERMISSIONS_REQUEST_LOCATION;
@@ -52,6 +53,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Location mLastLocation;
     LocationRequest mLocationRequest;
     Button buttonFlight;
+    Button buttonDrone;
+
+    private int DEFAULT_ZOOM_LEVEL = 18;
 
     private Socket client;
 
@@ -60,6 +64,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private boolean ConnectionTrue;
     private boolean first;
+    private boolean last;
+    private boolean start;
+    private Marker marker;
     int i;
 
     @Override
@@ -72,9 +79,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         buttonFlight = (Button) findViewById(R.id.buttonFlight);
+        buttonDrone = (Button) findViewById(R.id.buttonDrone);
 
         ConnectionTrue = false;
         first = false;
+        last = false;
+        start = false;
         i = 0;
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -86,6 +96,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         } else {
             chatOperator.execute();
         }
+
+        buttonDrone.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (start) {
+                    setGpsCurrent(marker.getPosition().latitude, marker.getPosition().longitude);
+                } else {
+                    Toast.makeText(MapsActivity.this, R.string.unknown_drone, Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+    }
+
+    private void setGpsCurrent(double latitude, double longitude) {
+        LatLng latLng = new LatLng(latitude, longitude);
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(DEFAULT_ZOOM_LEVEL));
+    }
+
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
     }
 
     public boolean checkLocationPermission() {
@@ -111,12 +144,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 buildGoogleApiClient();
-                mMap.setMyLocationEnabled(true);
                 mMap.setOnMapLongClickListener(this);
             }
         } else {
             buildGoogleApiClient();
-            mMap.setMyLocationEnabled(true);
             mMap.setOnMapLongClickListener(this);
         }
     }
@@ -184,14 +215,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
-            public boolean onMarkerClick(Marker marker) {
+            public boolean onMarkerClick(Marker m) {
                 for (int i = 0; i < location.size(); i++) {
-                    String markerLocation = marker.getPosition().latitude + "/" + marker.getPosition().longitude;
+                    String markerLocation = m.getPosition().latitude + "/" + m.getPosition().longitude;
                     if (markerLocation.equals(location.get(i))) {
                         location.set(i, "");
                     }
                 }
-                marker.remove();
+                if (!m.equals(marker)) {
+                    m.remove();
+                }
                 return true;
             }
         });
@@ -223,10 +256,32 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+            }
+        }
+
+        @Override
+        protected void onProgressUpdate(Void... values) {
+            if (message != null) {
+                StringTokenizer tokens = new StringTokenizer(message);
+
+                String MSGTYPE = tokens.nextToken("%%");
+
+                if (MSGTYPE.equals("MSGTYPE=GPS")) {
+                    String DATA = tokens.nextToken("%%");
+                    String latitude = DATA.substring((DATA.indexOf("=")) + 1, DATA.indexOf("/"));
+                    String longitude = DATA.substring((DATA.indexOf("/")) + 1);
+                    LatLng location = new LatLng(Float.parseFloat(latitude), Float.parseFloat(longitude));
+
+                    if (!start) {
+                        MarkerOptions markerOptions = new MarkerOptions()
+                                .position(location)
+                                .title(location.toString())
+                                .icon(BitmapDescriptorFactory.fromResource(R.drawable.drone));
+                        marker = mMap.addMarker(markerOptions);
+                        start = true;
+                    } else {
+                        marker.setPosition(location);
+                    }
                 }
             }
         }
@@ -283,7 +338,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             String text = protocolSet(gps.substring(0, gps.length() - 2), first);
                             MessageSend(text);
                             location.clear();
-                            i=0;
+                            i = 0;
                             mMap.clear();
                         } else {
                             Toast.makeText(MapsActivity.this, R.string.snack_bar_no_gps, Toast.LENGTH_LONG).show();
@@ -306,7 +361,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (!first) { //첫 연결
             msg = PROTO_DVTYPE_KEY + "=" + PROTO_DVTYPE.PHONE.ordinal() + "%%" + PROTO_MSG_TYPE_KEY + "=" + PROTO_MSGTYPE.HELLO.ordinal();
         } else {
-            msg = PROTO_DVTYPE_KEY + "=" + PROTO_DVTYPE.PHONE.ordinal() + "%%" + PROTO_MSG_TYPE_KEY + "=" + PROTO_MSGTYPE.CMD.ordinal() + "%%DATA=" + str;
+            if (last) { //연결 종료
+                msg = PROTO_DVTYPE_KEY + "=" + PROTO_DVTYPE.PHONE.ordinal() + "%%" + PROTO_MSG_TYPE_KEY + "=" + PROTO_MSGTYPE.CMD.ordinal() + "%%DATA=" + str;
+            } else { //목적지 위치 알려주기
+                msg = PROTO_DVTYPE_KEY + "=" + PROTO_DVTYPE.PHONE.ordinal() + "%%" + PROTO_MSG_TYPE_KEY + "=" + PROTO_MSGTYPE.PATH.ordinal() + "%%DATA=" + str;
+            }
         }
         return msg;
     }
@@ -328,6 +387,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     if (ConnectionTrue) {
 
                         ChatOperator chatOperator = new ChatOperator();
+                        last = true;
 
                         text = protocolSet("32", first);
                         chatOperator.MessageSend(text);
@@ -342,7 +402,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         if (!client.isClosed()) {
                             Thread.sleep(100);
                             client.close();
-                            first=false;
+                            first = false;
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
