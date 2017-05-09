@@ -36,6 +36,8 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.StringTokenizer;
 
+import static com.example.pyojihye.smart2gps.Const.DEFAULT_ZOOM_LEVEL;
+import static com.example.pyojihye.smart2gps.Const.Dronelocation;
 import static com.example.pyojihye.smart2gps.Const.IP;
 import static com.example.pyojihye.smart2gps.Const.MY_PERMISSIONS_REQUEST_LOCATION;
 import static com.example.pyojihye.smart2gps.Const.PORT;
@@ -44,18 +46,15 @@ import static com.example.pyojihye.smart2gps.Const.PROTO_MSG_TYPE_KEY;
 import static com.example.pyojihye.smart2gps.Const.PROTO_DVTYPE;
 import static com.example.pyojihye.smart2gps.Const.PROTO_MSGTYPE;
 import static com.example.pyojihye.smart2gps.Const.location;
+import static com.example.pyojihye.smart2gps.Const.marker;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, LocationListener, GoogleMap.OnMapLongClickListener {
 
     private GoogleMap mMap;
     GoogleApiClient mGoogleApiClient;
-    Marker mLocationMarker;
-    Location mLastLocation;
     LocationRequest mLocationRequest;
     Button buttonFlight;
     Button buttonDrone;
-
-    private int DEFAULT_ZOOM_LEVEL = 18;
 
     private Socket client;
 
@@ -66,7 +65,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private boolean first;
     private boolean last;
     private boolean start;
-    private Marker marker;
+
     int i;
 
     @Override
@@ -114,7 +113,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(DEFAULT_ZOOM_LEVEL));
     }
-
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
@@ -175,11 +173,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onLocationChanged(Location location) {
-        mLastLocation = location;
-        if (mLocationMarker != null) {
-            mLocationMarker.remove();
-        }
-
         if (mGoogleApiClient != null) {
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
         }
@@ -270,17 +263,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     String DATA = tokens.nextToken("%%");
                     String latitude = DATA.substring((DATA.indexOf("=")) + 1, DATA.indexOf("/"));
                     String longitude = DATA.substring((DATA.indexOf("/")) + 1);
-                    LatLng location = new LatLng(Float.parseFloat(latitude), Float.parseFloat(longitude));
+                    Dronelocation = new LatLng(Float.parseFloat(latitude), Float.parseFloat(longitude));
 
                     if (!start) {
                         MarkerOptions markerOptions = new MarkerOptions()
-                                .position(location)
+                                .position(Dronelocation)
                                 .title(location.toString())
                                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.drone));
                         marker = mMap.addMarker(markerOptions);
                         start = true;
                     } else {
-                        marker.setPosition(location);
+                        marker.setPosition(Dronelocation);
                     }
                 }
             }
@@ -340,6 +333,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             location.clear();
                             i = 0;
                             mMap.clear();
+
+                            MarkerOptions markerOptions = new MarkerOptions()
+                                    .position(Dronelocation)
+                                    .title(location.toString())
+                                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.drone));
+                            marker = mMap.addMarker(markerOptions);
                         } else {
                             Toast.makeText(MapsActivity.this, R.string.snack_bar_no_gps, Toast.LENGTH_LONG).show();
                         }

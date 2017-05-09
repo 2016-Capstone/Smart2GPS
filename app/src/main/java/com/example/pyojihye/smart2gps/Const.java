@@ -1,5 +1,8 @@
 package com.example.pyojihye.smart2gps;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,11 +13,17 @@ import java.util.List;
 public class Const {
     public static String IP;
     public static int PORT;
+
+    public static Marker marker;
+
     public static List<String> location = new ArrayList<String>();
 
     public static final String PROTO_DVTYPE_KEY = "DVTYPE";
     public static final String PROTO_MSG_TYPE_KEY = "MSGTYPE";
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 1;
+    public static final int DEFAULT_ZOOM_LEVEL = 18;
+
+    public static LatLng Dronelocation;
 
     public enum PROTO_DVTYPE {
         PHONE, DRONE
