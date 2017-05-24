@@ -36,6 +36,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.StringTokenizer;
 
+import static com.example.pyojihye.smart2gps.Const.ConnectionTrue;
 import static com.example.pyojihye.smart2gps.Const.DEFAULT_ZOOM_LEVEL;
 import static com.example.pyojihye.smart2gps.Const.Dronelocation;
 import static com.example.pyojihye.smart2gps.Const.IP;
@@ -45,8 +46,14 @@ import static com.example.pyojihye.smart2gps.Const.PROTO_DVTYPE_KEY;
 import static com.example.pyojihye.smart2gps.Const.PROTO_MSG_TYPE_KEY;
 import static com.example.pyojihye.smart2gps.Const.PROTO_DVTYPE;
 import static com.example.pyojihye.smart2gps.Const.PROTO_MSGTYPE;
+import static com.example.pyojihye.smart2gps.Const.bufferedReader;
+import static com.example.pyojihye.smart2gps.Const.client;
+import static com.example.pyojihye.smart2gps.Const.first;
+import static com.example.pyojihye.smart2gps.Const.last;
 import static com.example.pyojihye.smart2gps.Const.location;
 import static com.example.pyojihye.smart2gps.Const.marker;
+import static com.example.pyojihye.smart2gps.Const.printWriter;
+import static com.example.pyojihye.smart2gps.Const.start;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, LocationListener, GoogleMap.OnMapLongClickListener {
 
@@ -55,16 +62,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     LocationRequest mLocationRequest;
     Button buttonFlight;
     Button buttonDrone;
-
-    private Socket client;
-
-    private PrintWriter printWriter;
-    private BufferedReader bufferedReader;
-
-    private boolean ConnectionTrue;
-    private boolean first;
-    private boolean last;
-    private boolean start;
+    Button buttonStart;
 
     int i;
 
@@ -79,6 +77,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         buttonFlight = (Button) findViewById(R.id.buttonFlight);
         buttonDrone = (Button) findViewById(R.id.buttonDrone);
+        buttonStart = (Button) findViewById(R.id.buttonStart);
 
         ConnectionTrue = false;
         first = false;
@@ -103,6 +102,32 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     setGpsCurrent(marker.getPosition().latitude, marker.getPosition().longitude);
                 } else {
                     Toast.makeText(MapsActivity.this, R.string.unknown_drone, Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
+        buttonStart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String data = "";
+                if (((Button) v).getText().toString().equals("Start")) {
+                    if (ConnectionTrue) {
+                        ChatOperator chatOperator = new ChatOperator();
+                        data = dataSet("116", first);
+                        chatOperator.MessageSend(data);
+
+                        buttonStart.setText("Landing");
+                        buttonFlight.setEnabled(true);
+                    }
+                } else {
+                    if (ConnectionTrue) {
+                        ChatOperator chatOperator = new ChatOperator();
+                        data = dataSet("32", first);
+                        chatOperator.MessageSend(data);
+
+                        buttonStart.setText("Start");
+                        buttonFlight.setEnabled(false);
+                    }
                 }
             }
         });
@@ -369,59 +394,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return msg;
     }
 
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-
-        if ((keyCode == KeyEvent.KEYCODE_BACK)) {
-            AlertDialog.Builder d = new AlertDialog.Builder(this);
-            d.setTitle(getString(R.string.dialog_title));
-            d.setMessage(getString(R.string.dialog_contents));
-            d.setIcon(R.mipmap.ic_launcher);
-
-            d.setPositiveButton(getString(R.string.dialog_yes), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    String text;
-
-                    if (ConnectionTrue) {
-
-                        ChatOperator chatOperator = new ChatOperator();
-                        last = true;
-
-                        text = protocolSet("32", first);
-                        chatOperator.MessageSend(text);
-
-                        text = protocolSet("113", first);
-                        chatOperator.MessageSend(text);
-
-                        text = protocolSet("27", first);
-                        chatOperator.MessageSend(text);
-                    }
-                    try {
-                        if (!client.isClosed()) {
-                            Thread.sleep(100);
-                            client.close();
-                            first = false;
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    finish();
-                }
-            });
-
-            d.setNegativeButton(getString(R.string.dialog_no), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.cancel();
-                }
-            });
-            d.show();
-
-            return true;
+    private String dataSet(String str, boolean first) {
+        String msg = "";
+        if (first) {
+            msg = PROTO_DVTYPE_KEY + "=" + "0" + "%%" + PROTO_MSG_TYPE_KEY + "=" + "0" + "%%DATA=" + str;
         }
-        return super.onKeyDown(keyCode, event);
+        return msg;
     }
 }
