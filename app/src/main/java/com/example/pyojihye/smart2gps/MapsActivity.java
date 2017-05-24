@@ -55,6 +55,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     LocationRequest mLocationRequest;
     Button buttonFlight;
     Button buttonDrone;
+    Button buttonStart;
 
     private Socket client;
 
@@ -65,7 +66,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private boolean first;
     private boolean last;
     private boolean start;
-
     int i;
 
     @Override
@@ -79,13 +79,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         buttonFlight = (Button) findViewById(R.id.buttonFlight);
         buttonDrone = (Button) findViewById(R.id.buttonDrone);
+        buttonStart = (Button) findViewById(R.id.buttonStart);
 
         ConnectionTrue = false;
         first = false;
         last = false;
         start = false;
         i = 0;
-
+        buttonFlight.setEnabled(false);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
@@ -131,6 +132,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return false;
         } else {
             return true;
+        }
+    }
+
+    public void onStartButton(View view){
+        String text;
+        if(((Button)view).getText().toString().equalsIgnoreCase("START")){
+            buttonStart.setText("Landing");
+            buttonFlight.setEnabled(true);
+            if (ConnectionTrue) {
+                ChatOperator chatOperator = new ChatOperator();
+                text = PROTO_DVTYPE_KEY + "=" + "0" + "%%" + PROTO_MSG_TYPE_KEY + "=" + "0" + "%%DATA=" + "116";
+
+                chatOperator.MessageSend(text);
+            }
+        }else{
+            buttonStart.setText("Start");
+            buttonFlight.setEnabled(false);
+            if (ConnectionTrue) {
+                ChatOperator chatOperator = new ChatOperator();
+                text = PROTO_DVTYPE_KEY + "=" + "0" + "%%" + PROTO_MSG_TYPE_KEY + "=" + "0" + "%%DATA=" + "32";
+                chatOperator.MessageSend(text);
+            }
         }
     }
 

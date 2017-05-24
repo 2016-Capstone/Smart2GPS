@@ -22,9 +22,18 @@
         android:text="Current"/>
 
     <Button
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
         android:id="@+id/buttonFlight"
         android:text="Flight" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:id="@+id/buttonStart"
+        android:onClick="onStartButton"
+        android:text="Start"/>
 </RelativeLayout>
