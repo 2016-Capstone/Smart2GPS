@@ -37,8 +37,7 @@ import static com.example.pyojihye.smart2gps.Const.printWriter;
  * Created by PYOJIHYE on 2017-05-24.
  */
 
-public class ControlActivity extends AppCompatActivity
-{
+public class ControlActivity extends AppCompatActivity {
     private Button buttonEmergency;
 
     private Button buttonLandTakeOff;
@@ -75,9 +74,9 @@ public class ControlActivity extends AppCompatActivity
         buttonLandTakeOff.setText("Take Off");
 
         ConnectionTrue = false;
-        first=false;
+        first = false;
         ChatOperator chatOperator = new ChatOperator();
-        if(ConnectionTrue==false){
+        if (ConnectionTrue == false) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
                 chatOperator.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
             else
@@ -100,7 +99,7 @@ public class ControlActivity extends AppCompatActivity
                     bufferedReader = new BufferedReader(inputStreamReader);
                     String text = protocolSet("", first);
                     MessageSend(text);
-                    first=true;
+                    first = true;
                 } else {
                     Toast.makeText(getApplicationContext(), getString(R.string.snack_bar_server_port), Toast.LENGTH_LONG).show();
                 }
