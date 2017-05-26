@@ -19,17 +19,16 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".MenuActivity"/>
+        <activity android:name=".MenuActivity" />
 
         <activity
             android:name=".MapsActivity"
-            android:label="@string/title_activity_maps"
-            android:configChanges="orientation|screenSize"/>
+            android:configChanges="orientation|screenSize"
+            android:label="@string/title_activity_maps" />
 
         <activity
             android:name=".ControlActivity"
-            android:screenOrientation="landscape"/>
+            android:screenOrientation="landscape" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
