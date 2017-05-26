@@ -18,5 +18,5 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/buttonAuto"
         android:text="Manual" />
-    
+
 </RelativeLayout>
