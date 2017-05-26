@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             try {
                 setSocket(editTextIP.getText().toString());
-                Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
+                Intent intent = new Intent(this, MenuActivity.class);
                 startActivity(intent);
             } catch (Exception e) {
                 e.printStackTrace();
